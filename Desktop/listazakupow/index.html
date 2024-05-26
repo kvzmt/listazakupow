@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lista zakupów</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <h1>Lista zakupów</h1>
+
+    <div id="addItemForm">
+      <input type="text" id="itemName" placeholder="Nazwa produktu" required>
+      <button id="addBtn">Dodaj</button>
+    </div>
+
+    <ul id="shoppingList">
+      </ul>
+  </div>
+
+  <script src="main.js"></script>
+  <script>
+    const { ipcRenderer } = require('electron');
+
+    document.getElementById('addBtn').addEventListener('click', () => {
+      const itemName = document.getElementById('itemName').value;
+      if (itemName) {
+        ipcRenderer.send('addItem', itemName);
+        document.getElementById('itemName').value = ''; // Wyczyść pole po dodaniu produktu
+      } else {
+        alert('Wprowadź nazwę produktu!');
+      }
+    });
+
+    ipcRenderer.on('updateShoppingList', (event, shoppingList) => {
+      const shoppingListUl = document.getElementById('shoppingList');
+      shoppingListUl.innerHTML = ''; // Wyczyść listę przed wyświetleniem aktualnej listy zakupów
+
+      shoppingList.forEach((item, index) => {
+        const listItem = document.createElement('li');
+        listItem.textContent = item;
+        listItem.id = index; // Dodaj identyfikator do każdego elementu listy
+
+        const deleteBtn = document.createElement('button');
+        deleteBtn.textContent = 'Usuń';
+        deleteBtn.addEventListener('click', () => {
+          ipcRenderer.send('removeItem', index);
+        });
+
+        listItem.appendChild(deleteBtn);
+        shoppingListUl.appendChild(listItem);
+      });
+    });
+  </script>
+</body>
+</html>
